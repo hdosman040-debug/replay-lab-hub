@@ -1,6 +1,6 @@
 import { aggregateCandles } from "./aggregate";
 import type { MarketDataProvider } from "./provider";
-import { TIMEFRAMES, type Candle, type CandleRange, type DatasetInfo, type Symbol, type Timeframe } from "./types";
+import { floorToTf, TIMEFRAMES, type Candle, type CandleRange, type DatasetInfo, type Symbol, type Timeframe } from "./types";
 
 /**
  * MockMarketDataProvider
