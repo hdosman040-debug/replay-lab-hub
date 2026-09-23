@@ -175,8 +175,21 @@ export function CandleChart({
       bump();
     });
     ro.observe(el);
-    // price scale changes (autoscale) don't emit events — poll cheaply while mounted
-    const iv = window.setInterval(bump, 250);
+    // Price-scale changes (autoscale) emit no events, so we sample — but only
+    // re-render the overlays when the projection actually moved. Without this
+    // guard the whole drawing layer re-rendered 4× a second, forever.
+    let signature = "";
+    const iv = window.setInterval(() => {
+      const s = seriesRef.current;
+      if (!s) return;
+      const r = chart.timeScale().getVisibleLogicalRange();
+      const top = s.coordinateToPrice(0);
+      const bottom = s.coordinateToPrice(chart.paneSize().height);
+      const next = `${r?.from ?? ""}|${r?.to ?? ""}|${top ?? ""}|${bottom ?? ""}`;
+      if (next === signature) return;
+      signature = next;
+      bump();
+    }, 200);
 
     return () => {
       ro.disconnect();
@@ -203,15 +216,25 @@ export function CandleChart({
     });
     const first = candles[0];
     const prevFirst = prev[0];
+    const prevLast = prev[prev.length - 1];
+    const nextLast = candles[candles.length - 1];
+    // `series.update()` throws if it is handed a bar older than the newest one
+    // already in the series, so incremental updates are only valid when the
+    // series is growing forward from the same first bar.
     const incremental =
       prev.length > 0 &&
-      first &&
-      prevFirst &&
+      !!first &&
+      !!prevFirst &&
+      !!prevLast &&
+      !!nextLast &&
       first.time === prevFirst.time &&
+      nextLast.time >= prevLast.time &&
       candles.length >= prev.length &&
       candles.length - prev.length <= 3;
     if (incremental) {
-      const start = Math.max(0, prev.length - 2);
+      // start at the previous newest bar: it may have changed from forming to
+      // complete. Anything before it is immutable history.
+      const start = Math.max(0, prev.length - 1);
       for (let i = start; i < candles.length; i++) {
         const c = candles[i];
         if (c) series.update(toBar(c));

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type PointerEvent as RPointerEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as RPointerEvent } from "react";
 
 import { useChartCtx, type CoordApi } from "./chartContext";
 import { isTwoPoint, type Drawing, type PricePoint, type ToolDef } from "@/lib/drawings/types";
@@ -431,7 +431,8 @@ function SessionBands({
   showTradingWindow: boolean;
 }) {
   const { visibleFrom, visibleTo, height, barSeconds } = coords;
-  const segs: { x1: number; x2: number; s: SessionName; tw: boolean }[] = [];
+  const segs = useMemo(() => {
+  const acc: { x1: number; x2: number; s: SessionName; tw: boolean }[] = [];
   let cur: { x1: number; x2: number; s: SessionName; tw: boolean } | null = null;
   const halfBar = ((coords.timeToX(visibleFrom + barSeconds) ?? 0) - (coords.timeToX(visibleFrom) ?? 0)) / 2;
   for (const c of candles) {
@@ -451,11 +452,14 @@ function SessionBands({
     if (cur && cur.s === s && cur.tw === tw && x1 - cur.x2 < halfBar * 4) {
       cur.x2 = x2;
     } else {
-      if (cur) segs.push(cur);
+      if (cur) acc.push(cur);
       cur = { x1, x2, s, tw };
     }
   }
-  if (cur) segs.push(cur);
+  if (cur) acc.push(cur);
+  return acc;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coords, candles, timezone, sessions, visibleFrom, visibleTo, barSeconds]);
   const fill: Record<SessionName, string> = {
     asia: "var(--info)",
     london: "var(--poi)",
