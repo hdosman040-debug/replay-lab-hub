@@ -1,0 +1,12 @@
+{
+  "source": "github",
+  "repository": "hdosman040-debug/replay-lab-pro",
+  "capabilities": [
+    { "capability": "application code (routes, components, stores, replay/backtest/chart libs)", "source": "github repo src/", "outcome": "copied into project src/", "status": "done", "next_action": "verify preview renders" },
+    { "capability": "dependencies (lightweight-charts, zustand)", "source": "repo package.json", "outcome": "installed via bun add", "status": "done", "next_action": "none" },
+    { "capability": "database schema and records", "source": "none detected", "outcome": "not applicable — app is client-only (zustand, mock market provider)", "status": "not_applicable", "next_action": "none" },
+    { "capability": "auth and users", "source": "none detected", "outcome": "not applicable", "status": "not_applicable", "next_action": "none" },
+    { "capability": "external providers, secrets, env vars", "source": "none detected", "outcome": "not applicable", "status": "not_applicable", "next_action": "none" },
+    { "capability": "public endpoints, webhooks, schedules", "source": "none detected", "outcome": "not applicable", "status": "not_applicable", "next_action": "none" }
+  ]
+}
