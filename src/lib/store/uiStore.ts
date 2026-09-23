@@ -6,7 +6,7 @@ export type PanelTab = "workflow" | "analysis" | "trade";
 export type PanelSize = "collapsed" | "half" | "full";
 
 /** Transient (non-persisted) UI + playback state. */
-interface UIState {
+export interface UIState {
   playing: boolean;
   setPlaying: (v: boolean) => void;
   /** timeframe currently displayed (kept in sync with the replay clock) */
