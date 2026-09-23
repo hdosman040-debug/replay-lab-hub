@@ -154,9 +154,12 @@ class MockMarketDataProvider implements MarketDataProvider {
   async getCandles(range: CandleRange): Promise<Candle[]> {
     const { timeframe, from, to } = range;
     if (timeframe === "M1") return this.getM1(from, to);
-    // aggregate from M1; buckets are floored, so extend the lower bound to bucket start.
-    const m1 = this.getM1(from, to);
-    return aggregateCandles(m1, timeframe).filter((c) => c.time >= from && c.time < to);
+    // Buckets are floored, so read from the START of the bucket containing `from`;
+    // otherwise the first aggregated candle would be built from a partial bucket
+    // and report a wrong open/high/low.
+    const bucketStart = floorToTf(from, timeframe);
+    const m1 = this.getM1(bucketStart, to);
+    return aggregateCandles(m1, timeframe).filter((c) => c.time >= bucketStart && c.time < to);
   }
 
   async getBounds(_symbol: Symbol, _timeframe: Timeframe) {
