@@ -175,8 +175,21 @@ export function CandleChart({
       bump();
     });
     ro.observe(el);
-    // price scale changes (autoscale) don't emit events — poll cheaply while mounted
-    const iv = window.setInterval(bump, 250);
+    // Price-scale changes (autoscale) emit no events, so we sample — but only
+    // re-render the overlays when the projection actually moved. Without this
+    // guard the whole drawing layer re-rendered 4× a second, forever.
+    let signature = "";
+    const iv = window.setInterval(() => {
+      const s = seriesRef.current;
+      if (!s) return;
+      const r = chart.timeScale().getVisibleLogicalRange();
+      const top = s.coordinateToPrice(0);
+      const bottom = s.coordinateToPrice(chart.paneSize().height);
+      const next = `${r?.from ?? ""}|${r?.to ?? ""}|${top ?? ""}|${bottom ?? ""}`;
+      if (next === signature) return;
+      signature = next;
+      bump();
+    }, 200);
 
     return () => {
       ro.disconnect();
